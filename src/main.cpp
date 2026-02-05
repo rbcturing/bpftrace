@@ -816,7 +816,7 @@ int main(int argc, char* argv[])
       LOG(ERROR) << "Failed to parse pid: " << maybe_pid.takeError();
       exit(1);
     }
-    if (*maybe_pid > 0x400000) {
+    if (*maybe_pid >= 0x400000) {
       // The actual maximum pid depends on the configuration for the specific
       // system, i.e. read from `/proc/sys/kernel/pid_max`. We can impose a
       // basic sanity check here against the nominal maximum for 64-bit

