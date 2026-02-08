@@ -863,7 +863,7 @@ int main(int argc, char* argv[])
 
     // Ensure that BTF is loaded for all listing.
     auto parts = util::split_string(args.search, ':');
-    if (is_search_a_type || parts.empty() || parts.size() < 3) {
+    if (is_search_a_type || parts.empty() || parts.size() <= 2) {
       bpftrace.btf_->load_module_btfs(kernel_func_info->get_modules());
     } else {
       bpftrace.btf_->load_module_btfs(kernel_func_info->get_modules(parts[1]));

