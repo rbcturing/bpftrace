@@ -1,0 +1,40 @@
+{
+  "upload_directory": "/tmp/files/",
+  "output_directory": "/tmp/outputs/",
+  "system_prompt": "You are an expert code reviewer. Analyze the provided codebase for bugs, security issues, and correctness problems. Provide actionable feedback. All files are located in /tmp/files",
+  "task_prompt": "You are an expert code reviewer. Your task is to analyze the bpftrace codebase. bpftrace is a general-purpose tracing tool and language for Linux that uses eBPF for kernel and user-space tracing. The codebase handles CLI and script parameters (1-based indexing), per-CPU event aggregation and loop bounds, rlimit and file descriptor sizing for probes and maps, signal handler registration and restoration, poll/event loop retry vs stop on EINTR, BPF map iteration (get_next_key with null for first key and empty-map semantics), listing mode and BTF loading branch conditions for colon-separated probe patterns, per-CPU read-write section sizing in global vars, and end-probe counting for total attached and drain logic. Your goal is to identify bugs, off-by-one errors, API contract and kernel semantics misuse, magic constant miscalculation, state and lifecycle issues, and control flow or branch condition errors. Focus on: 1-based parameter index and guard for zero, per-CPU summation loop upper bound (max index vs count), buffer or slack constant in fd count formula, symmetry of signal handler setup and teardown, poll stop condition when ready < 0 and errno is EINTR, empty-map handling in get_next_key iteration (first ENOENT), listing condition for loading all modules vs one module (parts size threshold), desired_size formula for per-CPU section (max_cpu_id vs max_cpu_id+1), and whether num_end_attached is accumulated for total_attached. Write your findings to /tmp/outputs/review.md",
+  "rubric": [
+    {
+      "criterion": "Identifies the missing guard for index 0 in get_param(size_t i) in src/bpftrace.cpp: only params_.size() < i is checked, so get_param(0) leads to params_.at(i-1) with i==0 (i.e. at(SIZE_MAX)) and out-of-range or undefined behavior for 1-based positional script args",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the off-by-one loop bound in get_event_loss_counter in src/bpfbytecode.cpp: the loop uses i < max_cpu_id instead of i <= max_cpu_id (or i < max_cpu_id + 1), so the last CPU's event loss count is never summed (requires knowing max_cpu_id is a max index, not a count)",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the underestimated fd buffer in set_rlimit_nofile in src/bpftrace.cpp: needed_fd_count uses + 10 instead of a sufficient slack (e.g. + 50), so under high probe/map counts the rlimit can be too low and cause \"Too many open files\" or attachment failures (requires reasoning about kernel/libbpf fd usage)",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies that in run_bpftrace in src/run_bpftrace.cpp only SIGINT is restored to SIG_DFL after bpftrace.run(); SIGTERM and SIGUSR1 are never restored, so custom handlers remain active after return and can fire in a no-longer-valid context",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the wrong empty-map handling in collect_keys in src/bpfmap.cpp: when rc == -ENOENT and keys.empty() the code adds the uninitialized key to keys and continues instead of breaking, so an empty map can yield one bogus key and subsequent clear/zero/print can misbehave (requires knowing bpf_map_get_next_key(fd, NULL, key) returns -ENOENT when map is empty)",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the wrong BTF load branch in the listing path in src/main.cpp: the condition uses parts.size() <= 2 instead of parts.size() < 3 for choosing between loading all modules and loading one module by parts[1], so for three-part search patterns (e.g. type:target:func) the wrong BTF set is loaded and listing can be incomplete or incorrect (requires probe listing convention)",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the off-by-one in update_global_vars_custom_rw_section in src/globalvars.cpp: desired_size is set to max_cpu_id * actual_size instead of (max_cpu_id + 1) * actual_size, so the per-CPU read-write section is one CPU slot too small and access on the last CPU can misindex or overflow",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies that in BPFtrace::run in src/bpftrace.cpp num_end_attached is set to 0 instead of being set to resources.end_probes.size(), so total_attached undercounts and scripts with only end probes or begin+end can incorrectly hit \"No probes attached\" or wrong drain behavior (requires tracing how total_attached and should_drain are used)",
+      "weight": 1
+    }
+  ]
+}
