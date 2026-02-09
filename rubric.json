@@ -1,0 +1,40 @@
+{
+  "upload_directory": "/tmp/files/",
+  "output_directory": "/tmp/outputs/",
+  "system_prompt": "You are an expert code reviewer. Analyze the provided codebase for bugs, security issues, and correctness problems. Provide actionable feedback. All files are located in /tmp/files",
+  "task_prompt": "You are an expert code reviewer. Your task is to analyze the bpftrace codebase. bpftrace is a general-purpose tracing tool and language for Linux that uses eBPF for kernel and user-space tracing (kprobes, uprobes, tracepoints, USDT, etc.). The codebase handles CLI argument parsing, script compilation (lexer/parser, AST passes, LLVM codegen), BPF program loading and map management, probe attachment, signal handling, child process management for -c/-p, output formatting (text/json) and buffering, configuration and environment variable parsing, and per-CPU/ring-buffer event processing. Your goal is to identify bugs, correctness issues, boundary condition errors, logic errors, off-by-one mistakes, missing validation checks, resource cleanup gaps, signal handler lifecycle issues, and any other issues that could affect reliability or correctness. Focus on: bounds and loop limits in per-CPU aggregation and map iteration, parameter/index validation in 1-based vs 0-based APIs, signal handler setup and restoration symmetry, config and license parsing case sensitivity, output buffer mode condition logic, benchmark iteration scaling, histogram map bucket indexing without bounds checks, and per-CPU section sizing. Write your findings to /tmp/outputs/review.md",
+  "rubric": [
+    {
+      "criterion": "Identifies the missing guard for index 0 in get_param(size_t i) in src/bpftrace.cpp where only params_.size() < i is checked, so get_param(0) calls params_.at(i-1) with i==0 (i.e. at(SIZE_MAX)), causing out-of-range or undefined behavior for 1-based positional args",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the off-by-one loop bound in get_event_loss_counter in src/bpfbytecode.cpp where the loop uses i < max_cpu_id instead of i <= max_cpu_id (or i < max_cpu_id + 1), so the last CPU's event loss count is never summed",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies that in run_bpftrace in src/run_bpftrace.cpp only SIGINT is restored to SIG_DFL after bpftrace.run(); SIGTERM and SIGUSR1 handlers are left set, which can cause confusing behavior if the process continues or signals are delivered later",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the missing bounds check in collect_histogram_data in src/bpfmap.cpp where values_by_key[prefix].at(idx) is used without validating that idx is within the resized vector (65*32 for hist, 1002 for lhist), risking std::out_of_range for out-of-range bucket indices",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies that ConfigParser<CompatibleBPFLicense>::parse in src/config.cpp uses BPF_LICENSE_STR.find(original) without normalizing the key to lower case, so lowercase or mixed-case license values (e.g. \"gpl\", \"Gpl v2\") fail to match and produce LicenseError",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the off-by-one in update_global_vars_custom_rw_section in src/globalvars.cpp where desired_size is set to max_cpu_id * actual_size instead of (max_cpu_id + 1) * actual_size, so the per-CPU read-write section is one CPU slot too small",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the wrong multiplier in the benchmark iteration loop in BPFtrace::run in src/bpftrace.cpp where the branch for total < 1 microsecond (total < std::chrono::microseconds(1)) uses iters *= 100 instead of iters *= 1000 (or 10'00), slowing convergence toward the 1ms run-time threshold",
+      "weight": 1
+    },
+    {
+      "criterion": "Identifies the inverted condition in run_bpftrace in src/run_bpftrace.cpp where the flushing_streambuf wrapper is applied when out_buf_config == OutputBufferConfig::FULL instead of when out_buf_config != OutputBufferConfig::FULL, so full buffering gets line-flush behavior and line/none get full buffering",
+      "weight": 1
+    }
+  ]
+}
